@@ -130,6 +130,25 @@ function showMainApp() {
 // Event Listeners Setup
 // ==========================================
 function setupEventListeners() {
+    // Hamburger menu toggle
+    const menuToggle = $('#menu-toggle');
+    const menuClose = $('#menu-close');
+    const sideMenu = $('#side-menu');
+    const menuOverlay = $('#menu-overlay');
+    
+    on(menuToggle, 'click', () => {
+        sideMenu.classList.add('open');
+        menuOverlay.classList.add('open');
+    });
+    
+    on(menuClose, 'click', closeMenu);
+    on(menuOverlay, 'click', closeMenu);
+    
+    function closeMenu() {
+        sideMenu.classList.remove('open');
+        menuOverlay.classList.remove('open');
+    }
+    
     // Auth form toggle
     on(authToggleBtn, 'click', toggleAuthMode);
     
@@ -140,21 +159,15 @@ function setupEventListeners() {
     const logoutBtn = $('#logout-btn');
     on(logoutBtn, 'click', handleLogout);
     
-    // Navigation
-    onAll($$('.nav-item'), 'click', handleNavigation);
-    
-    // Mobile navigation
-    onAll($$('.mobile-nav-item'), 'click', (e) => {
-        const targetPage = e.currentTarget.dataset.page;
-        if (targetPage) {
-            e.preventDefault();
-            handleNavigation(e);
-        }
+    // Navigation (menu items)
+    onAll($$('.menu-item'), 'click', (e) => {
+        handleNavigation(e);
+        closeMenu();
     });
     
-    // Mobile add transaction button
-    const mobileAddTransactionBtn = $('#mobile-add-transaction-btn');
-    on(mobileAddTransactionBtn, 'click', () => openModal('transaction-modal'));
+    // Header add button
+    const headerAddBtn = $('#header-add-btn');
+    on(headerAddBtn, 'click', () => openModal('transaction-modal'));
     
     // Modal buttons
     const addTransactionBtn = $('#add-transaction-btn');
@@ -372,20 +385,24 @@ function handleNavigation(e) {
     
     const targetPage = e.currentTarget.dataset.page;
     
-    // Update nav items (both desktop sidebar and mobile nav)
-    $$('.nav-item').forEach(item => item.classList.remove('active'));
-    $$('.mobile-nav-item').forEach(item => item.classList.remove('active'));
-    
-    // Set active state for clicked item
+    // Update menu items active state
+    $$('.menu-item').forEach(item => item.classList.remove('active'));
     e.currentTarget.classList.add('active');
-    
-    // Also set active state for corresponding nav item in other nav
-    const correspondingItems = $$(`.nav-item[data-page="${targetPage}"], .mobile-nav-item[data-page="${targetPage}"]`);
-    correspondingItems.forEach(item => item.classList.add('active'));
     
     // Update pages
     $$('.page').forEach(page => page.classList.remove('active'));
     $(`#page-${targetPage}`).classList.add('active');
+    
+    // Update page title in header
+    const pageTitles = {
+        'dashboard': 'Dashboard',
+        'accounts': 'Accounts',
+        'transactions': 'Transactions',
+        'budgets': 'Budgets',
+        'calendar': 'Calendar'
+    };
+    const pageTitle = $('#page-title');
+    if (pageTitle) pageTitle.textContent = pageTitles[targetPage] || 'Nova';
     
     // Render calendar when navigating to calendar page
     if (targetPage === 'calendar') {
@@ -567,9 +584,46 @@ async function deleteTransaction(transactionId) {
     if (!confirm('Delete this transaction?')) return;
     
     try {
-        // Note: In a real app, you'd also reverse the account balance change
+        // Get the transaction first to reverse the balance change
+        const txnDoc = await db.collection('users').doc(currentUser.uid)
+            .collection('transactions').doc(transactionId).get();
+        
+        if (!txnDoc.exists) {
+            alert('Transaction not found.');
+            return;
+        }
+        
+        const txn = txnDoc.data();
+        const accountRef = db.collection('users').doc(currentUser.uid)
+            .collection('accounts').doc(txn.accountId);
+        
+        // Reverse the balance change
+        if (txn.type === 'expense') {
+            // Reverse expense: add money back
+            await accountRef.update({
+                balance: firebase.firestore.FieldValue.increment(txn.amount)
+            });
+        } else if (txn.type === 'income') {
+            // Reverse income: subtract money
+            await accountRef.update({
+                balance: firebase.firestore.FieldValue.increment(-txn.amount)
+            });
+        } else if (txn.type === 'transfer' && txn.toAccountId) {
+            // Reverse transfer
+            await accountRef.update({
+                balance: firebase.firestore.FieldValue.increment(txn.amount)
+            });
+            const toAccountRef = db.collection('users').doc(currentUser.uid)
+                .collection('accounts').doc(txn.toAccountId);
+            await toAccountRef.update({
+                balance: firebase.firestore.FieldValue.increment(-txn.amount)
+            });
+        }
+        
+        // Delete the transaction
         await db.collection('users').doc(currentUser.uid)
             .collection('transactions').doc(transactionId).delete();
+            
     } catch (error) {
         console.error('Error deleting transaction:', error);
         alert('Failed to delete transaction.');
@@ -601,19 +655,17 @@ function renderAccounts() {
     
     container.innerHTML = accounts.map(account => `
         <div class="account-card">
-            <div class="account-card-header">
-                <div class="account-icon ${account.type}">
+            <div class="account-header">
+                <div class="account-icon">
                     ${accountIcons[account.type] || '🏦'}
                 </div>
-                <button class="btn-danger" onclick="deleteAccount('${account.id}')">
+                <div class="account-name">${escapeHtml(account.name)}</div>
+                <button class="icon-btn" onclick="deleteAccount('${account.id}')">
                     <i data-lucide="trash-2"></i>
                 </button>
             </div>
-            <p class="account-type">${account.type}</p>
-            <p class="account-name">${escapeHtml(account.name)}</p>
-            <p class="account-balance">
-                <span>Rs.</span> ${formatNumber(account.balance)}
-            </p>
+            <p class="account-type">${capitalizeFirst(account.type)}</p>
+            <p class="account-balance">Rs. ${formatNumber(account.balance)}</p>
         </div>
     `).join('');
     
@@ -654,21 +706,18 @@ function createTransactionHTML(txn) {
     });
     
     return `
-        <div class="transaction-item">
-            <div class="transaction-icon">
+        <div class="txn-item">
+            <div class="txn-icon">
                 ${categoryEmojis[txn.category] || '📦'}
             </div>
-            <div class="transaction-info">
-                <p class="transaction-category">${capitalizeFirst(txn.category)}</p>
-                <p class="transaction-description">${escapeHtml(txn.description) || 'No description'}</p>
+            <div class="txn-info">
+                <div class="txn-title">${capitalizeFirst(txn.category)}</div>
+                <div class="txn-desc">${escapeHtml(txn.description) || 'No description'}</div>
             </div>
-            <div>
-                <p class="transaction-amount ${amountClass}">
-                    ${amountPrefix}Rs. ${formatNumber(txn.amount)}
-                </p>
-                <p class="transaction-date">${date}</p>
+            <div class="txn-amount ${amountClass}">
+                ${amountPrefix}Rs. ${formatNumber(txn.amount)}
             </div>
-            <button class="btn-danger" onclick="deleteTransaction('${txn.id}')">
+            <button class="icon-btn" onclick="deleteTransaction('${txn.id}')">
                 <i data-lucide="trash-2"></i>
             </button>
         </div>
@@ -712,22 +761,19 @@ function renderBudgets() {
         return `
             <div class="budget-card">
                 <div class="budget-header">
-                    <div class="budget-category">
-                        <div class="budget-category-icon">
-                            ${categoryEmojis[budget.category] || '📦'}
-                        </div>
-                        <span class="budget-category-name">${capitalizeFirst(budget.category)}</span>
+                    <div class="budget-icon">
+                        ${categoryEmojis[budget.category] || '📦'}
                     </div>
-                    <div class="budget-amounts">
-                        <p class="budget-spent">Rs. ${formatNumber(spent)}</p>
-                        <p class="budget-limit">of Rs. ${formatNumber(budget.limit)}</p>
-                    </div>
-                    <button class="btn-danger" onclick="deleteBudget('${budget.id}')">
+                    <div class="budget-name">${capitalizeFirst(budget.category)}</div>
+                    <button class="icon-btn" onclick="deleteBudget('${budget.id}')">
                         <i data-lucide="trash-2"></i>
                     </button>
                 </div>
+                <div class="budget-amount">
+                    <span class="spent">Rs. ${formatNumber(spent)}</span> / Rs. ${formatNumber(budget.limit)}
+                </div>
                 <div class="budget-progress">
-                    <div class="budget-progress-bar ${progressClass}" style="width: ${percentage}%"></div>
+                    <div class="progress-bar ${progressClass}" style="width: ${percentage}%"></div>
                 </div>
             </div>
         `;
