@@ -257,7 +257,15 @@ async function handleAuthSubmit(e) {
         if (isLoginMode) {
             await auth.signInWithEmailAndPassword(email, password);
         } else {
-            await auth.createUserWithEmailAndPassword(email, password);
+            const cred = await auth.createUserWithEmailAndPassword(email, password);
+
+            // Initialize user document (collections are created automatically on first write)
+            if (cred && cred.user) {
+                await db.collection('users').doc(cred.user.uid).set({
+                    email: cred.user.email || email,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            }
         }
         // Auth state change will handle the rest
     } catch (error) {
