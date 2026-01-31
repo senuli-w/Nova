@@ -143,6 +143,19 @@ function setupEventListeners() {
     // Navigation
     onAll($$('.nav-item'), 'click', handleNavigation);
     
+    // Mobile navigation
+    onAll($$('.mobile-nav-item'), 'click', (e) => {
+        const targetPage = e.currentTarget.dataset.page;
+        if (targetPage) {
+            e.preventDefault();
+            handleNavigation(e);
+        }
+    });
+    
+    // Mobile add transaction button
+    const mobileAddTransactionBtn = $('#mobile-add-transaction-btn');
+    on(mobileAddTransactionBtn, 'click', () => openModal('transaction-modal'));
+    
     // Modal buttons
     const addTransactionBtn = $('#add-transaction-btn');
     const addAccountBtn = $('#add-account-btn');
@@ -359,9 +372,16 @@ function handleNavigation(e) {
     
     const targetPage = e.currentTarget.dataset.page;
     
-    // Update nav items
+    // Update nav items (both desktop sidebar and mobile nav)
     $$('.nav-item').forEach(item => item.classList.remove('active'));
+    $$('.mobile-nav-item').forEach(item => item.classList.remove('active'));
+    
+    // Set active state for clicked item
     e.currentTarget.classList.add('active');
+    
+    // Also set active state for corresponding nav item in other nav
+    const correspondingItems = $$(`.nav-item[data-page="${targetPage}"], .mobile-nav-item[data-page="${targetPage}"]`);
+    correspondingItems.forEach(item => item.classList.add('active'));
     
     // Update pages
     $$('.page').forEach(page => page.classList.remove('active'));
