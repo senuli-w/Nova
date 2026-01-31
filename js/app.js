@@ -45,6 +45,12 @@ const accountIcons = {
 // ==========================================
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => document.querySelectorAll(selector);
+const on = (el, event, handler) => {
+    if (el) el.addEventListener(event, handler);
+};
+const onAll = (elements, event, handler) => {
+    elements.forEach(el => on(el, event, handler));
+};
 
 // Screens
 const loadingScreen = $('#loading-screen');
@@ -73,7 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
     
     // Set default date for transaction form
-    $('#txn-date').valueAsDate = new Date();
+    const txnDateInput = $('#txn-date');
+    if (txnDateInput) txnDateInput.valueAsDate = new Date();
     
     // Setup event listeners
     setupEventListeners();
@@ -117,100 +124,84 @@ function showMainApp() {
 // ==========================================
 function setupEventListeners() {
     // Auth form toggle
-    if (authToggleBtn) authToggleBtn.addEventListener('click', toggleAuthMode);
+    on(authToggleBtn, 'click', toggleAuthMode);
     
     // Auth form submit
-    if (authForm) authForm.addEventListener('submit', handleAuthSubmit);
+    on(authForm, 'submit', handleAuthSubmit);
     
     // Logout button
     const logoutBtn = $('#logout-btn');
-    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+    on(logoutBtn, 'click', handleLogout);
     
     // Navigation
-    $$('.nav-item').forEach(item => {
-        item.addEventListener('click', handleNavigation);
-    });
+    onAll($$('.nav-item'), 'click', handleNavigation);
     
     // Modal buttons
     const addTransactionBtn = $('#add-transaction-btn');
     const addAccountBtn = $('#add-account-btn');
     const addBudgetBtn = $('#add-budget-btn');
     
-    if (addTransactionBtn) addTransactionBtn.addEventListener('click', () => openModal('transaction-modal'));
-    if (addAccountBtn) addAccountBtn.addEventListener('click', () => openModal('account-modal'));
-    if (addBudgetBtn) addBudgetBtn.addEventListener('click', () => openModal('budget-modal'));
+    on(addTransactionBtn, 'click', () => openModal('transaction-modal'));
+    on(addAccountBtn, 'click', () => openModal('account-modal'));
+    on(addBudgetBtn, 'click', () => openModal('budget-modal'));
     
     // Modal close buttons
-    $$('.modal-close').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const modalId = e.currentTarget.dataset.closeModal;
+    onAll($$('.modal-close'), 'click', (e) => {
+        const modalId = e.currentTarget.dataset.closeModal;
+        if (modalId) {
             closeModal(modalId);
-        });
+        } else if (e.currentTarget.id === 'close-day-overlay') {
+            closeDayOverlay();
+        }
     });
     
     // Modal backdrop click to close
-    $$('.modal-backdrop').forEach(backdrop => {
-        backdrop.addEventListener('click', (e) => {
-            const modal = e.target.closest('.modal');
-            if (modal) modal.classList.add('hidden');
-        });
+    onAll($$('.modal-backdrop'), 'click', (e) => {
+        const modal = e.target.closest('.modal');
+        if (modal) modal.classList.add('hidden');
     });
     
     // Transaction type tabs
-    $$('.type-tab').forEach(tab => {
-        tab.addEventListener('click', handleTransactionTypeChange);
-    });
+    onAll($$('.type-tab'), 'click', handleTransactionTypeChange);
     
     // Forms
     const transactionForm = $('#transaction-form');
     const accountForm = $('#account-form');
     const budgetForm = $('#budget-form');
     
-    if (transactionForm) transactionForm.addEventListener('submit', handleTransactionSubmit);
-    if (accountForm) accountForm.addEventListener('submit', handleAccountSubmit);
-    if (budgetForm) budgetForm.addEventListener('submit', handleBudgetSubmit);
+    on(transactionForm, 'submit', handleTransactionSubmit);
+    on(accountForm, 'submit', handleAccountSubmit);
+    on(budgetForm, 'submit', handleBudgetSubmit);
     
     // Calendar navigation
     const prevMonthBtn = $('#prev-month-btn');
     const nextMonthBtn = $('#next-month-btn');
     
-    if (prevMonthBtn) {
-        prevMonthBtn.addEventListener('click', () => {
-            currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
-            renderCalendar();
-        });
-    }
+    on(prevMonthBtn, 'click', () => {
+        currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+        renderCalendar();
+    });
     
-    if (nextMonthBtn) {
-        nextMonthBtn.addEventListener('click', () => {
-            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
-            renderCalendar();
-        });
-    }
+    on(nextMonthBtn, 'click', () => {
+        currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+        renderCalendar();
+    });
     
     // Day overlay
     const closeDayOverlayBtn = $('#close-day-overlay');
-    const dayOverlayBackdrop = $('#day-overlay-backdrop');
-    const dayOverlayBackdropClass = $('.day-overlay-backdrop');
+    const dayOverlayBackdrop = $('#day-overlay-backdrop') || $('.day-overlay-backdrop');
     const addTransactionToDayBtn = $('#add-transaction-to-day-btn');
     
-    if (closeDayOverlayBtn) closeDayOverlayBtn.addEventListener('click', closeDayOverlay);
-    if (dayOverlayBackdrop) dayOverlayBackdrop.addEventListener('click', closeDayOverlay);
-    if (dayOverlayBackdropClass) dayOverlayBackdropClass.addEventListener('click', closeDayOverlay);
+    on(closeDayOverlayBtn, 'click', closeDayOverlay);
+    on(dayOverlayBackdrop, 'click', closeDayOverlay);
     
     // Add transaction to selected day
-    if (addTransactionToDayBtn) {
-        addTransactionToDayBtn.addEventListener('click', () => {
-            closeDayOverlay();
-            openModal('transaction-modal');
-            if (selectedDate) {
-                const txnDate = $('#txn-date');
-                if (txnDate) txnDate.valueAsDate = selectedDate;
-            }
-        });
-    }
-}
-
+    on(addTransactionToDayBtn, 'click', () => {
+        closeDayOverlay();
+        openModal('transaction-modal');
+        if (selectedDate) {
+            const txnDate = $('#txn-date');
+            if (txnDate) txnDate.valueAsDate = selectedDate;
         }
     });
 }
