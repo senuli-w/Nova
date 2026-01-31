@@ -482,6 +482,39 @@ function editTransaction(transactionId) {
     openModal('transaction-modal');
 }
 
+function editAccount(accountId) {
+    const account = accounts.find(a => a.id === accountId);
+    if (!account) return;
+    
+    // Set edit mode
+    $('#edit-account-id').value = accountId;
+    $('#account-modal-title').textContent = 'Edit Account';
+    $('#account-submit-text').textContent = 'Update Account';
+    
+    // Set form values
+    $('#acc-name').value = account.name;
+    $(`input[name="acc-type"][value="${account.type}"]`).checked = true;
+    $('#acc-balance').value = account.balance || 0;
+    
+    openModal('account-modal');
+}
+
+function editBudget(budgetId) {
+    const budget = budgets.find(b => b.id === budgetId);
+    if (!budget) return;
+    
+    // Set edit mode
+    $('#edit-budget-id').value = budgetId;
+    $('#budget-modal-title').textContent = 'Edit Budget';
+    $('#budget-submit-text').textContent = 'Update Budget';
+    
+    // Set form values
+    $('#budget-category').value = budget.category;
+    $('#budget-limit').value = budget.limit;
+    
+    openModal('budget-modal');
+}
+
 function handleTransactionTypeChange(e) {
     const type = e.currentTarget.dataset.type;
     
@@ -864,7 +897,10 @@ function renderAccounts() {
             </div>
             <div class="account-balance">Rs. ${formatNumber(account.balance || 0)}</div>
             <div class="account-actions">
-                <button class="btn-action delete" onclick="confirmDeleteAccount('${account.id}', '${escapeHtml(account.name)}')">
+                <button class="btn-action" onclick="editAccount('${account.id}')" title="Edit">
+                    <i data-lucide="edit-2"></i>
+                </button>
+                <button class="btn-action delete" onclick="confirmDeleteAccount('${account.id}', '${escapeHtml(account.name)}')" title="Delete">
                     <i data-lucide="trash-2"></i>
                 </button>
             </div>
@@ -1024,9 +1060,14 @@ function renderBudgets() {
                             <span class="spent">Rs. ${formatNumber(spent)}</span> / Rs. ${formatNumber(budget.limit)}
                         </div>
                     </div>
-                    <button class="budget-delete" onclick="confirmDeleteBudget('${budget.id}')">
-                        <i data-lucide="trash-2"></i>
-                    </button>
+                    <div class="budget-actions">
+                        <button class="btn-action" onclick="editBudget('${budget.id}')" title="Edit">
+                            <i data-lucide="edit-2"></i>
+                        </button>
+                        <button class="budget-delete" onclick="confirmDeleteBudget('${budget.id}')" title="Delete">
+                            <i data-lucide="trash-2"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="budget-bar">
                     <div class="budget-progress ${progressClass}" style="width: ${percentage}%"></div>
@@ -1278,3 +1319,5 @@ window.confirmDeleteAccount = confirmDeleteAccount;
 window.confirmDeleteTransaction = confirmDeleteTransaction;
 window.confirmDeleteBudget = confirmDeleteBudget;
 window.editTransaction = editTransaction;
+window.editAccount = editAccount;
+window.editBudget = editBudget;

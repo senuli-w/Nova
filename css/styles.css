@@ -1191,6 +1191,11 @@ body {
     font-weight: 600;
 }
 
+.budget-actions {
+    display: flex;
+    gap: 4px;
+}
+
 .budget-delete {
     width: 32px;
     height: 32px;
