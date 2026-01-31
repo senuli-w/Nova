@@ -79,13 +79,13 @@
                         <i data-lucide="arrow-left-right"></i>
                         <span>Transactions</span>
                     </a>
-                    <a href="#calendar" class="nav-item" data-page="calendar">
-                        <i data-lucide="calendar"></i>
-                        <span>Calendar</span>
-                    </a>
                     <a href="#budgets" class="nav-item" data-page="budgets">
                         <i data-lucide="pie-chart"></i>
                         <span>Budgets</span>
+                    </a>
+                    <a href="#calendar" class="nav-item" data-page="calendar">
+                        <i data-lucide="calendar"></i>
+                        <span>Calendar</span>
                     </a>
                 </nav>
                 
@@ -214,10 +214,7 @@
                             <h1>Calendar</h1>
                             <p>View your transactions by date.</p>
                         </div>
-                    </div>
-                    
-                    <div class="calendar-container card">
-                        <div class="calendar-header">
+                        <div class="calendar-controls">
                             <button id="prev-month-btn" class="calendar-nav-btn">
                                 <i data-lucide="chevron-left"></i>
                             </button>
@@ -226,7 +223,9 @@
                                 <i data-lucide="chevron-right"></i>
                             </button>
                         </div>
-                        
+                    </div>
+                    
+                    <div class="calendar-container">
                         <div class="calendar-weekdays">
                             <div class="weekday">Sun</div>
                             <div class="weekday">Mon</div>
@@ -236,9 +235,8 @@
                             <div class="weekday">Fri</div>
                             <div class="weekday">Sat</div>
                         </div>
-                        
                         <div id="calendar-grid" class="calendar-grid">
-                            <!-- Calendar days will be rendered here -->
+                            <!-- Calendar days will be generated here -->
                         </div>
                     </div>
                 </div>
@@ -246,35 +244,30 @@
         </div>
     </div>
 
-    <!-- Day Detail Modal -->
-    <div id="day-detail-modal" class="modal hidden">
-        <div class="modal-backdrop"></div>
-        <div class="modal-content modal-content-lg">
-            <div class="modal-header">
-                <h3 id="day-detail-title">Transactions for January 15, 2026</h3>
-                <button class="modal-close" data-close-modal="day-detail-modal">
+    <!-- Day Details Overlay -->
+    <div id="day-overlay" class="day-overlay hidden">
+        <div class="day-overlay-backdrop"></div>
+        <div class="day-overlay-content">
+            <div class="day-overlay-header">
+                <div>
+                    <h3 id="overlay-date">January 15, 2026</h3>
+                    <p id="overlay-summary">2 transactions · Rs. 450</p>
+                </div>
+                <button class="modal-close" id="close-day-overlay">
                     <i data-lucide="x"></i>
                 </button>
             </div>
-            <div class="day-detail-content">
-                <div class="day-summary">
-                    <div class="day-summary-item income">
-                        <i data-lucide="trending-up"></i>
-                        <span>Income: Rs. <span id="day-income">0</span></span>
-                    </div>
-                    <div class="day-summary-item expense">
-                        <i data-lucide="trending-down"></i>
-                        <span>Expenses: Rs. <span id="day-expense">0</span></span>
-                    </div>
-                </div>
-                
+            
+            <div class="day-overlay-body">
                 <div id="day-transactions-list" class="day-transactions-list">
-                    <p class="empty-state">No transactions on this day</p>
+                    <p class="empty-state">No transactions for this day</p>
                 </div>
-                
-                <button id="add-day-transaction-btn" class="btn-primary btn-full">
+            </div>
+            
+            <div class="day-overlay-footer">
+                <button id="add-transaction-to-day-btn" class="btn-primary btn-full">
                     <i data-lucide="plus"></i>
-                    <span>Add Transaction for This Day</span>
+                    <span>Add Transaction to This Day</span>
                 </button>
             </div>
         </div>

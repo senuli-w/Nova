@@ -14,7 +14,7 @@ let unsubscribeListeners = [];
 
 // Calendar state
 let currentCalendarDate = new Date();
-let selectedDayDate = null;
+let selectedDate = null;
 
 // Category emojis mapping
 const categoryEmojis = {
@@ -74,9 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Set default date for transaction form
     $('#txn-date').valueAsDate = new Date();
-    
-    // Initialize calendar to current month
-    currentCalendarDate = new Date();
     
     // Setup event listeners
     setupEventListeners();
@@ -138,16 +135,6 @@ function setupEventListeners() {
     $('#add-account-btn').addEventListener('click', () => openModal('account-modal'));
     $('#add-budget-btn').addEventListener('click', () => openModal('budget-modal'));
     
-    // Calendar navigation
-    $('#prev-month-btn').addEventListener('click', () => changeCalendarMonth(-1));
-    $('#next-month-btn').addEventListener('click', () => changeCalendarMonth(1));
-    
-    // Add transaction from day detail modal
-    $('#add-day-transaction-btn').addEventListener('click', () => {
-        closeModal('day-detail-modal');
-        openTransactionModalForDate(selectedDayDate);
-    });
-    
     // Modal close buttons
     $$('.modal-close').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -173,6 +160,31 @@ function setupEventListeners() {
     $('#transaction-form').addEventListener('submit', handleTransactionSubmit);
     $('#account-form').addEventListener('submit', handleAccountSubmit);
     $('#budget-form').addEventListener('submit', handleBudgetSubmit);
+    
+    // Calendar navigation
+    $('#prev-month-btn').addEventListener('click', () => {
+        currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+        renderCalendar();
+    });
+    
+    $('#next-month-btn').addEventListener('click', () => {
+        currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+        renderCalendar();
+    });
+    
+    // Day overlay
+    $('#close-day-overlay').addEventListener('click', closeDayOverlay);
+    $('#day-overlay-backdrop').addEventListener('click', closeDayOverlay);
+    $('.day-overlay-backdrop').addEventListener('click', closeDayOverlay);
+    
+    // Add transaction to selected day
+    $('#add-transaction-to-day-btn').addEventListener('click', () => {
+        closeDayOverlay();
+        openModal('transaction-modal');
+        if (selectedDate) {
+            $('#txn-date').valueAsDate = selectedDate;
+        }
+    });
 }
 
 // ==========================================
@@ -295,6 +307,9 @@ function loadUserData() {
             console.error('Error loading budgets:', error);
         });
     unsubscribeListeners.push(budgetsUnsubscribe);
+    
+    // Initial calendar render
+    renderCalendar();
 }
 
 function cleanupListeners() {
@@ -317,6 +332,11 @@ function handleNavigation(e) {
     // Update pages
     $$('.page').forEach(page => page.classList.remove('active'));
     $(`#page-${targetPage}`).classList.add('active');
+    
+    // Render calendar when navigating to calendar page
+    if (targetPage === 'calendar') {
+        renderCalendar();
+    }
 }
 
 // ==========================================
@@ -722,177 +742,199 @@ function escapeHtml(text) {
 // ==========================================
 // Calendar Functions
 // ==========================================
-function changeCalendarMonth(delta) {
-    currentCalendarDate = new Date(
-        currentCalendarDate.getFullYear(),
-        currentCalendarDate.getMonth() + delta,
-        1
-    );
-    renderCalendar();
-}
-
 function renderCalendar() {
     const year = currentCalendarDate.getFullYear();
     const month = currentCalendarDate.getMonth();
     
     // Update header
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                        'July', 'August', 'September', 'October', 'November', 'December'];
+                       'July', 'August', 'September', 'October', 'November', 'December'];
     $('#calendar-month-year').textContent = `${monthNames[month]} ${year}`;
     
     // Get first day of month and total days
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const daysInPrevMonth = new Date(year, month, 0).getDate();
     
-    // Get transactions for this month
-    const monthStart = new Date(year, month, 1).getTime();
-    const monthEnd = new Date(year, month + 1, 0, 23, 59, 59).getTime();
-    
-    // Group transactions by day
-    const transactionsByDay = {};
-    transactions.forEach(txn => {
-        if (txn.date >= monthStart && txn.date <= monthEnd) {
-            const day = new Date(txn.date).getDate();
-            if (!transactionsByDay[day]) {
-                transactionsByDay[day] = { income: 0, expense: 0, transactions: [] };
-            }
-            if (txn.type === 'income') {
-                transactionsByDay[day].income += txn.amount;
-            } else if (txn.type === 'expense') {
-                transactionsByDay[day].expense += txn.amount;
-            }
-            transactionsByDay[day].transactions.push(txn);
-        }
-    });
-    
-    // Find max values for scaling mini charts
-    let maxAmount = 0;
-    Object.values(transactionsByDay).forEach(day => {
-        maxAmount = Math.max(maxAmount, day.income, day.expense);
-    });
-    if (maxAmount === 0) maxAmount = 1;
-    
-    // Build calendar HTML
-    let html = '';
+    // Get today's date for comparison
     const today = new Date();
-    const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
+    const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+    const todayDate = today.getDate();
     
-    // Previous month days
-    for (let i = firstDay - 1; i >= 0; i--) {
-        const day = daysInPrevMonth - i;
-        html += `<div class="calendar-day other-month">
-            <span class="calendar-day-number">${day}</span>
-        </div>`;
+    // Build calendar grid
+    const grid = $('#calendar-grid');
+    grid.innerHTML = '';
+    
+    // Add empty cells for days before month starts
+    for (let i = 0; i < firstDay; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'calendar-day empty';
+        grid.appendChild(emptyDay);
     }
     
-    // Current month days
+    // Add days of the month
     for (let day = 1; day <= daysInMonth; day++) {
-        const isToday = isCurrentMonth && today.getDate() === day;
-        const dayData = transactionsByDay[day];
-        const hasTransactions = dayData && (dayData.income > 0 || dayData.expense > 0);
-        
-        let classes = 'calendar-day';
-        if (isToday) classes += ' today';
-        if (hasTransactions) classes += ' has-transactions';
-        
-        // Calculate net for the day
-        let netAmount = 0;
-        let netClass = '';
-        let miniChartHtml = '';
-        
-        if (dayData) {
-            netAmount = dayData.income - dayData.expense;
-            netClass = netAmount >= 0 ? 'positive' : 'negative';
-            
-            // Mini chart bars (scaled to max)
-            const incomeWidth = (dayData.income / maxAmount) * 100;
-            const expenseWidth = (dayData.expense / maxAmount) * 100;
-            
-            miniChartHtml = `
-                <div class="day-mini-chart">
-                    ${dayData.income > 0 ? `<div class="mini-bar income" style="width: ${incomeWidth}%"></div>` : ''}
-                    ${dayData.expense > 0 ? `<div class="mini-bar expense" style="width: ${expenseWidth}%"></div>` : ''}
-                </div>
-                ${hasTransactions ? `<div class="day-total ${netClass}">${netAmount >= 0 ? '+' : ''}${formatNumber(netAmount)}</div>` : ''}
-            `;
-        }
-        
-        html += `
-            <div class="${classes}" onclick="openDayDetail(${year}, ${month}, ${day})">
-                <span class="calendar-day-number">${day}</span>
-                ${miniChartHtml}
-            </div>
-        `;
+        const dayCell = createCalendarDay(year, month, day, isCurrentMonth && day === todayDate);
+        grid.appendChild(dayCell);
     }
     
-    // Next month days (fill remaining cells)
-    const totalCells = firstDay + daysInMonth;
-    const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
-    for (let day = 1; day <= remainingCells; day++) {
-        html += `<div class="calendar-day other-month">
-            <span class="calendar-day-number">${day}</span>
-        </div>`;
-    }
-    
-    $('#calendar-grid').innerHTML = html;
+    // Re-initialize icons
+    lucide.createIcons();
 }
 
-function openDayDetail(year, month, day) {
-    selectedDayDate = new Date(year, month, day);
+function createCalendarDay(year, month, day, isToday) {
+    const dayCell = document.createElement('div');
+    dayCell.className = 'calendar-day';
+    if (isToday) dayCell.classList.add('today');
     
-    // Format date for title
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const dateStr = selectedDayDate.toLocaleDateString('en-US', options);
-    $('#day-detail-title').textContent = dateStr;
+    // Create date object for this day
+    const date = new Date(year, month, day);
+    const dateTimestamp = date.setHours(0, 0, 0, 0);
     
     // Get transactions for this day
-    const dayStart = new Date(year, month, day, 0, 0, 0).getTime();
-    const dayEnd = new Date(year, month, day, 23, 59, 59).getTime();
-    
-    const dayTransactions = transactions.filter(txn => 
-        txn.date >= dayStart && txn.date <= dayEnd
-    );
+    const dayTransactions = transactions.filter(txn => {
+        const txnDate = new Date(txn.date);
+        return txnDate.getFullYear() === year &&
+               txnDate.getMonth() === month &&
+               txnDate.getDate() === day;
+    });
     
     // Calculate totals
-    let dayIncome = 0;
-    let dayExpense = 0;
+    let income = 0;
+    let expense = 0;
     
     dayTransactions.forEach(txn => {
         if (txn.type === 'income') {
-            dayIncome += txn.amount;
+            income += txn.amount;
         } else if (txn.type === 'expense') {
-            dayExpense += txn.amount;
+            expense += txn.amount;
         }
     });
     
-    $('#day-income').textContent = formatNumber(dayIncome);
-    $('#day-expense').textContent = formatNumber(dayExpense);
+    const total = income - expense;
+    
+    // Day number
+    const dayNumber = document.createElement('div');
+    dayNumber.className = 'day-number';
+    dayNumber.textContent = day;
+    dayCell.appendChild(dayNumber);
+    
+    // Transaction count badge
+    if (dayTransactions.length > 0) {
+        const badge = document.createElement('div');
+        badge.className = 'day-transaction-count';
+        badge.textContent = dayTransactions.length;
+        dayCell.appendChild(badge);
+    }
+    
+    // Mini chart
+    if (income > 0 || expense > 0) {
+        const chart = document.createElement('div');
+        chart.className = 'day-chart';
+        
+        const maxAmount = Math.max(income, expense);
+        
+        if (income > 0) {
+            const incomeBar = document.createElement('div');
+            incomeBar.className = 'chart-bar income';
+            const incomeHeight = (income / maxAmount) * 100;
+            incomeBar.style.height = `${Math.max(incomeHeight, 10)}%`;
+            incomeBar.title = `Income: Rs. ${formatNumber(income)}`;
+            chart.appendChild(incomeBar);
+        }
+        
+        if (expense > 0) {
+            const expenseBar = document.createElement('div');
+            expenseBar.className = 'chart-bar expense';
+            const expenseHeight = (expense / maxAmount) * 100;
+            expenseBar.style.height = `${Math.max(expenseHeight, 10)}%`;
+            expenseBar.title = `Expense: Rs. ${formatNumber(expense)}`;
+            chart.appendChild(expenseBar);
+        }
+        
+        dayCell.appendChild(chart);
+    }
+    
+    // Day total
+    if (dayTransactions.length > 0) {
+        const totalDiv = document.createElement('div');
+        totalDiv.className = 'day-total';
+        
+        if (total > 0) {
+            totalDiv.classList.add('positive');
+            totalDiv.textContent = `+Rs. ${formatNumber(total)}`;
+        } else if (total < 0) {
+            totalDiv.classList.add('negative');
+            totalDiv.textContent = `-Rs. ${formatNumber(Math.abs(total))}`;
+        } else {
+            totalDiv.classList.add('neutral');
+            totalDiv.textContent = 'Rs. 0';
+        }
+        
+        dayCell.appendChild(totalDiv);
+    }
+    
+    // Click handler
+    dayCell.addEventListener('click', () => {
+        openDayOverlay(year, month, day, dayTransactions);
+    });
+    
+    return dayCell;
+}
+
+function openDayOverlay(year, month, day, dayTransactions) {
+    selectedDate = new Date(year, month, day);
+    
+    // Format date
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                       'July', 'August', 'September', 'October', 'November', 'December'];
+    const dateStr = `${monthNames[month]} ${day}, ${year}`;
+    
+    // Calculate summary
+    let income = 0;
+    let expense = 0;
+    
+    dayTransactions.forEach(txn => {
+        if (txn.type === 'income') {
+            income += txn.amount;
+        } else if (txn.type === 'expense') {
+            expense += txn.amount;
+        }
+    });
+    
+    const total = income - expense;
+    const summary = `${dayTransactions.length} transaction${dayTransactions.length !== 1 ? 's' : ''} · ${total >= 0 ? '+' : '-'}Rs. ${formatNumber(Math.abs(total))}`;
+    
+    // Update overlay header
+    $('#overlay-date').textContent = dateStr;
+    $('#overlay-summary').textContent = summary;
     
     // Render transactions
     const listContainer = $('#day-transactions-list');
     
     if (dayTransactions.length === 0) {
-        listContainer.innerHTML = '<p class="empty-state">No transactions on this day</p>';
+        listContainer.innerHTML = '<p class="empty-state">No transactions for this day</p>';
     } else {
         listContainer.innerHTML = dayTransactions.map(txn => {
+            const isExpense = txn.type === 'expense';
             const isIncome = txn.type === 'income';
-            const typeClass = isIncome ? 'income' : 'expense';
-            const prefix = isIncome ? '+' : '-';
+            const typeClass = isExpense ? 'expense' : 'income';
+            const amountPrefix = isExpense ? '-' : '+';
             
             return `
-                <div class="day-transaction-item">
-                    <div class="day-txn-icon ${typeClass}">
+                <div class="day-transaction-item ${typeClass}">
+                    <div class="transaction-icon">
                         ${categoryEmojis[txn.category] || '📦'}
                     </div>
-                    <div class="day-txn-info">
-                        <p class="day-txn-category">${capitalizeFirst(txn.category)}</p>
-                        <p class="day-txn-desc">${escapeHtml(txn.description) || 'No description'}</p>
+                    <div class="transaction-info">
+                        <p class="transaction-category">${capitalizeFirst(txn.category)}</p>
+                        <p class="transaction-description">${escapeHtml(txn.description) || 'No description'}</p>
                     </div>
-                    <div class="day-txn-amount ${typeClass}">
-                        ${prefix}Rs. ${formatNumber(txn.amount)}
+                    <div>
+                        <p class="transaction-amount ${typeClass}">
+                            ${amountPrefix}Rs. ${formatNumber(txn.amount)}
+                        </p>
                     </div>
-                    <button class="btn-danger" onclick="deleteTransaction('${txn.id}'); openDayDetail(${year}, ${month}, ${day});">
+                    <button class="btn-danger" onclick="deleteTransaction('${txn.id}')">
                         <i data-lucide="trash-2"></i>
                     </button>
                 </div>
@@ -900,13 +942,14 @@ function openDayDetail(year, month, day) {
         }).join('');
     }
     
-    openModal('day-detail-modal');
+    // Show overlay
+    $('#day-overlay').classList.remove('hidden');
+    
+    // Re-initialize icons
     lucide.createIcons();
 }
 
-function openTransactionModalForDate(date) {
-    // Set the date in the transaction form
-    const dateStr = date.toISOString().split('T')[0];
-    $('#txn-date').value = dateStr;
-    openModal('transaction-modal');
+function closeDayOverlay() {
+    $('#day-overlay').classList.add('hidden');
+    selectedDate = null;
 }
