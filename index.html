@@ -12,8 +12,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2382/2382461.png">
     
-    <link rel="stylesheet" href="css/styles.css?v=20260131d">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css?v=20260131f">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -21,282 +21,527 @@
     <div id="app">
         <!-- Loading Screen -->
         <div id="loading-screen" class="loading-screen">
-            <div class="spinner"></div>
+            <div class="loader">
+                <div class="loader-icon">
+                    <i data-lucide="wallet"></i>
+                </div>
+                <div class="loader-text">Nova</div>
+                <div class="loader-spinner"></div>
+            </div>
         </div>
 
         <!-- Auth Page -->
         <div id="auth-page" class="auth-page hidden">
+            <div class="auth-bg">
+                <div class="auth-shape shape-1"></div>
+                <div class="auth-shape shape-2"></div>
+                <div class="auth-shape shape-3"></div>
+            </div>
             <div class="auth-container">
-                <div class="auth-logo">
-                    <i data-lucide="wallet"></i>
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <i data-lucide="wallet"></i>
+                    </div>
                     <h1>Nova</h1>
+                    <p>Smart Budget Manager</p>
                 </div>
-                <p class="auth-subtitle">Track your finances with ease</p>
                 
                 <div id="auth-error" class="auth-error hidden"></div>
                 
                 <form id="auth-form">
-                    <input type="email" id="auth-email" placeholder="Email" required>
-                    <input type="password" id="auth-password" placeholder="Password" required>
-                    <button type="submit" id="auth-submit" class="btn-primary">
+                    <div class="input-group">
+                        <i data-lucide="mail"></i>
+                        <input type="email" id="auth-email" placeholder="Email address" required>
+                    </div>
+                    <div class="input-group">
+                        <i data-lucide="lock"></i>
+                        <input type="password" id="auth-password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" id="auth-submit" class="btn-auth">
                         <span id="auth-submit-text">Sign In</span>
+                        <i data-lucide="arrow-right"></i>
                     </button>
                 </form>
                 
-                <p class="auth-toggle">
+                <div class="auth-footer">
                     <span id="auth-toggle-text">Don't have an account?</span>
                     <button id="auth-toggle-btn" type="button">Sign Up</button>
-                </p>
+                </div>
             </div>
         </div>
 
         <!-- Main App -->
         <div id="main-app" class="main-app hidden">
-            <!-- Top Header with Hamburger -->
-            <header class="app-header">
-                <button id="menu-toggle" class="menu-btn">
+            <!-- Top Navigation Bar -->
+            <header class="top-nav">
+                <button id="menu-toggle" class="nav-btn">
                     <i data-lucide="menu"></i>
                 </button>
-                <h1 id="page-title">Dashboard</h1>
-                <button id="header-add-btn" class="icon-btn">
-                    <i data-lucide="plus"></i>
-                </button>
+                <div class="nav-brand">
+                    <i data-lucide="wallet"></i>
+                    <span>Nova</span>
+                </div>
+                <div class="nav-user" id="nav-user">
+                    <span id="user-initial">U</span>
+                </div>
             </header>
 
-            <!-- Slide-out Menu -->
-            <nav id="side-menu" class="side-menu">
+            <!-- Side Menu (Hamburger) -->
+            <aside id="side-menu" class="side-menu">
                 <div class="menu-header">
-                    <h2>Nova</h2>
-                    <button id="menu-close" class="icon-btn">
+                    <div class="menu-logo">
+                        <i data-lucide="wallet"></i>
+                        <span>Nova</span>
+                    </div>
+                    <button id="menu-close" class="nav-btn">
                         <i data-lucide="x"></i>
                     </button>
                 </div>
-                <div class="menu-items">
-                    <a href="#dashboard" class="menu-item active" data-page="dashboard">
+                
+                <div class="menu-user">
+                    <div class="user-avatar" id="menu-user-avatar">U</div>
+                    <div class="user-info">
+                        <span class="user-name" id="menu-user-name">User</span>
+                        <span class="user-email" id="menu-user-email">user@email.com</span>
+                    </div>
+                </div>
+                
+                <nav class="menu-nav">
+                    <a href="#" class="nav-item active" data-page="dashboard">
                         <i data-lucide="layout-dashboard"></i>
                         <span>Dashboard</span>
                     </a>
-                    <a href="#accounts" class="menu-item" data-page="accounts">
-                        <i data-lucide="wallet"></i>
+                    <a href="#" class="nav-item" data-page="accounts">
+                        <i data-lucide="credit-card"></i>
                         <span>Accounts</span>
                     </a>
-                    <a href="#transactions" class="menu-item" data-page="transactions">
+                    <a href="#" class="nav-item" data-page="transactions">
                         <i data-lucide="arrow-left-right"></i>
                         <span>Transactions</span>
                     </a>
-                    <a href="#budgets" class="menu-item" data-page="budgets">
+                    <a href="#" class="nav-item" data-page="budgets">
                         <i data-lucide="pie-chart"></i>
                         <span>Budgets</span>
                     </a>
-                    <a href="#calendar" class="menu-item" data-page="calendar">
+                    <a href="#" class="nav-item" data-page="calendar">
                         <i data-lucide="calendar"></i>
                         <span>Calendar</span>
                     </a>
-                </div>
+                </nav>
+                
                 <div class="menu-footer">
                     <button id="logout-btn" class="btn-logout">
                         <i data-lucide="log-out"></i>
                         <span>Sign Out</span>
                     </button>
                 </div>
-            </nav>
+            </aside>
 
             <!-- Menu Overlay -->
             <div id="menu-overlay" class="menu-overlay"></div>
 
-            <!-- Main Content -->
-            <main class="content">
+            <!-- Main Content Area -->
+            <main class="main-content">
                 <!-- Dashboard Page -->
-                <div id="page-dashboard" class="page active">
-                    <div class="stats-cards">
-                        <div class="stat-card primary">
-                            <div class="stat-icon">
-                                <i data-lucide="wallet"></i>
-                            </div>
-                            <div class="stat-info">
-                                <p class="stat-label">Net Worth</p>
-                                <h2 class="stat-value">Rs. <span id="total-balance">0</span></h2>
-                            </div>
+                <section id="page-dashboard" class="page active">
+                    <div class="page-header">
+                        <h1>Dashboard</h1>
+                        <button class="btn-icon-primary" id="quick-add-btn">
+                            <i data-lucide="plus"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Net Worth Card -->
+                    <div class="net-worth-card">
+                        <div class="nw-label">
+                            <i data-lucide="wallet"></i>
+                            <span>Net Worth</span>
                         </div>
+                        <div class="nw-amount">Rs. <span id="total-balance">0</span></div>
+                        <div class="nw-date" id="current-date"></div>
+                    </div>
+                    
+                    <!-- Stats Row -->
+                    <div class="stats-row">
                         <div class="stat-card income">
                             <div class="stat-icon">
                                 <i data-lucide="trending-up"></i>
                             </div>
-                            <div class="stat-info">
-                                <p class="stat-label">Income</p>
-                                <h3 class="stat-value">Rs. <span id="monthly-income">0</span></h3>
+                            <div class="stat-data">
+                                <span class="stat-label">Income</span>
+                                <span class="stat-value">Rs. <span id="monthly-income">0</span></span>
                             </div>
                         </div>
                         <div class="stat-card expense">
                             <div class="stat-icon">
                                 <i data-lucide="trending-down"></i>
                             </div>
-                            <div class="stat-info">
-                                <p class="stat-label">Expenses</p>
-                                <h3 class="stat-value">Rs. <span id="monthly-expense">0</span></h3>
+                            <div class="stat-data">
+                                <span class="stat-label">Expenses</span>
+                                <span class="stat-value">Rs. <span id="monthly-expense">0</span></span>
                             </div>
                         </div>
                     </div>
-
+                    
+                    <!-- Recent Transactions -->
                     <div class="section">
-                        <h3 class="section-title">Recent Transactions</h3>
-                        <div id="recent-transactions" class="transaction-list"></div>
+                        <div class="section-header">
+                            <h2>Recent Transactions</h2>
+                            <a href="#" class="link" data-goto="transactions">See All</a>
+                        </div>
+                        <div id="recent-transactions" class="transactions-list"></div>
                     </div>
-                </div>
+                </section>
 
                 <!-- Accounts Page -->
-                <div id="page-accounts" class="page">
-                    <button id="add-account-btn" class="btn-primary btn-full">
-                        <i data-lucide="plus"></i>
-                        <span>Add Account</span>
-                    </button>
-                    <div id="accounts-grid" class="accounts-list"></div>
-                </div>
+                <section id="page-accounts" class="page">
+                    <div class="page-header">
+                        <h1>Accounts</h1>
+                        <button class="btn-icon-primary" id="add-account-btn">
+                            <i data-lucide="plus"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Total Balance Summary -->
+                    <div class="summary-card accounts-summary">
+                        <div class="summary-icon">
+                            <i data-lucide="landmark"></i>
+                        </div>
+                        <div class="summary-data">
+                            <span class="summary-label">Total Balance</span>
+                            <span class="summary-value">Rs. <span id="accounts-total">0</span></span>
+                        </div>
+                    </div>
+                    
+                    <div id="accounts-list" class="accounts-grid"></div>
+                </section>
 
                 <!-- Transactions Page -->
-                <div id="page-transactions" class="page">
-                    <div id="all-transactions" class="transaction-list"></div>
-                </div>
+                <section id="page-transactions" class="page">
+                    <div class="page-header">
+                        <h1>Transactions</h1>
+                        <button class="btn-icon-primary" id="add-transaction-btn">
+                            <i data-lucide="plus"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Filter Tabs -->
+                    <div class="filter-tabs">
+                        <button class="filter-tab active" data-filter="all">All</button>
+                        <button class="filter-tab" data-filter="income">Income</button>
+                        <button class="filter-tab" data-filter="expense">Expense</button>
+                        <button class="filter-tab" data-filter="transfer">Transfer</button>
+                    </div>
+                    
+                    <div id="all-transactions" class="transactions-list"></div>
+                </section>
 
                 <!-- Budgets Page -->
-                <div id="page-budgets" class="page">
-                    <button id="add-budget-btn" class="btn-primary btn-full">
-                        <i data-lucide="plus"></i>
-                        <span>Set Budget</span>
-                    </button>
-                    <div id="budgets-list" class="budgets-list"></div>
-                </div>
+                <section id="page-budgets" class="page">
+                    <div class="page-header">
+                        <h1>Budgets</h1>
+                        <button class="btn-icon-primary" id="add-budget-btn">
+                            <i data-lucide="plus"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Budget Summary -->
+                    <div class="budget-summary">
+                        <div class="budget-summary-item">
+                            <span class="bsi-label">Total Budget</span>
+                            <span class="bsi-value" id="total-budget">Rs. 0</span>
+                        </div>
+                        <div class="budget-summary-divider"></div>
+                        <div class="budget-summary-item">
+                            <span class="bsi-label">Spent</span>
+                            <span class="bsi-value spent" id="total-spent">Rs. 0</span>
+                        </div>
+                    </div>
+                    
+                    <div id="budgets-list" class="budgets-grid"></div>
+                </section>
 
                 <!-- Calendar Page -->
-                <div id="page-calendar" class="page">
-                    <div class="calendar-nav">
-                        <button id="prev-month-btn" class="icon-btn">
-                            <i data-lucide="chevron-left"></i>
-                        </button>
-                        <h3 id="calendar-month-year">January 2026</h3>
-                        <button id="next-month-btn" class="icon-btn">
-                            <i data-lucide="chevron-right"></i>
-                        </button>
+                <section id="page-calendar" class="page">
+                    <div class="page-header compact">
+                        <h1>Calendar</h1>
                     </div>
-                    <div class="calendar-weekdays">
-                        <div class="weekday">S</div>
-                        <div class="weekday">M</div>
-                        <div class="weekday">T</div>
-                        <div class="weekday">W</div>
-                        <div class="weekday">T</div>
-                        <div class="weekday">F</div>
-                        <div class="weekday">S</div>
+                    
+                    <div class="calendar-container">
+                        <div class="calendar-header">
+                            <button class="cal-nav-btn" id="prev-month">
+                                <i data-lucide="chevron-left"></i>
+                            </button>
+                            <h2 id="calendar-month-year">January 2026</h2>
+                            <button class="cal-nav-btn" id="next-month">
+                                <i data-lucide="chevron-right"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="calendar-weekdays">
+                            <span>Sun</span>
+                            <span>Mon</span>
+                            <span>Tue</span>
+                            <span>Wed</span>
+                            <span>Thu</span>
+                            <span>Fri</span>
+                            <span>Sat</span>
+                        </div>
+                        
+                        <div id="calendar-grid" class="calendar-grid"></div>
                     </div>
-                    <div id="calendar-grid" class="calendar-grid"></div>
-                </div>
+                </section>
             </main>
         </div>
     </div>
 
     <!-- Transaction Modal -->
     <div id="transaction-modal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add Transaction</h3>
-                <button class="icon-btn" data-close-modal="transaction-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-container transaction-modal">
+            <div class="modal-header gradient-header">
+                <h2 id="transaction-modal-title">New Transaction</h2>
+                <button class="modal-close" data-modal="transaction-modal">
                     <i data-lucide="x"></i>
                 </button>
             </div>
-            <form id="transaction-form">
-                <div class="type-tabs">
-                    <button type="button" class="type-tab active" data-type="expense">Expense</button>
-                    <button type="button" class="type-tab" data-type="income">Income</button>
-                    <button type="button" class="type-tab" data-type="transfer">Transfer</button>
+            
+            <form id="transaction-form" class="modal-form">
+                <input type="hidden" id="edit-transaction-id">
+                <!-- Transaction Type Selector -->
+                <div class="type-selector">
+                    <button type="button" class="type-btn expense active" data-type="expense">
+                        <i data-lucide="arrow-down-circle"></i>
+                        <span>Expense</span>
+                    </button>
+                    <button type="button" class="type-btn income" data-type="income">
+                        <i data-lucide="arrow-up-circle"></i>
+                        <span>Income</span>
+                    </button>
+                    <button type="button" class="type-btn transfer" data-type="transfer">
+                        <i data-lucide="repeat"></i>
+                        <span>Transfer</span>
+                    </button>
                 </div>
                 
-                <input type="number" id="txn-amount" placeholder="Amount" step="0.01" required>
-                <select id="txn-account" required>
-                    <option value="">Select Account</option>
-                </select>
-                <select id="txn-to-account" class="hidden">
-                    <option value="">To Account</option>
-                </select>
-                <select id="txn-category" required>
-                    <option value="food">🍔 Food</option>
-                    <option value="transport">🚗 Transport</option>
-                    <option value="shopping">🛍️ Shopping</option>
-                    <option value="entertainment">🎬 Entertainment</option>
-                    <option value="bills">📄 Bills</option>
-                    <option value="health">💊 Health</option>
-                    <option value="education">📚 Education</option>
-                    <option value="salary">💰 Salary</option>
-                    <option value="freelance">💼 Freelance</option>
-                    <option value="investment">📈 Investment</option>
-                    <option value="other">📦 Other</option>
-                </select>
-                <input type="text" id="txn-description" placeholder="Description (optional)">
-                <input type="date" id="txn-date" required>
+                <!-- Amount Input -->
+                <div class="amount-input-wrapper">
+                    <span class="currency">Rs.</span>
+                    <input type="number" id="txn-amount" placeholder="0.00" step="0.01" required>
+                </div>
                 
-                <button type="submit" class="btn-primary btn-full">Save Transaction</button>
+                <!-- Form Fields -->
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>From Account</label>
+                        <select id="txn-account" required>
+                            <option value="">Select account</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group hidden" id="to-account-group">
+                        <label>To Account</label>
+                        <select id="txn-to-account">
+                            <option value="">Select account</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="category-group">
+                        <label>Category</label>
+                        <select id="txn-category" required>
+                            <option value="food">🍔 Food & Dining</option>
+                            <option value="transport">🚗 Transport</option>
+                            <option value="shopping">🛍️ Shopping</option>
+                            <option value="entertainment">🎬 Entertainment</option>
+                            <option value="bills">📄 Bills & Utilities</option>
+                            <option value="health">💊 Health</option>
+                            <option value="education">📚 Education</option>
+                            <option value="salary">💰 Salary</option>
+                            <option value="freelance">💼 Freelance</option>
+                            <option value="investment">📈 Investment</option>
+                            <option value="other">📦 Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="txn-date" required>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label>Description (optional)</label>
+                        <input type="text" id="txn-description" placeholder="Add a note...">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-submit">
+                    <i data-lucide="check"></i>
+                    <span id="transaction-submit-text">Save Transaction</span>
+                </button>
             </form>
         </div>
     </div>
 
     <!-- Account Modal -->
     <div id="account-modal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add Account</h3>
-                <button class="icon-btn" data-close-modal="account-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-container account-modal">
+            <div class="modal-header gradient-header-alt">
+                <h2 id="account-modal-title">New Account</h2>
+                <button class="modal-close" data-modal="account-modal">
                     <i data-lucide="x"></i>
                 </button>
             </div>
-            <form id="account-form">
-                <input type="text" id="acc-name" placeholder="Account Name" required>
-                <select id="acc-type" required>
-                    <option value="bank">🏦 Bank</option>
-                    <option value="cash">💵 Cash</option>
-                    <option value="savings">🏧 Savings</option>
-                    <option value="credit">💳 Credit Card</option>
-                </select>
-                <input type="number" id="acc-balance" placeholder="Initial Balance" step="0.01" required>
-                <button type="submit" class="btn-primary btn-full">Add Account</button>
+            
+            <form id="account-form" class="modal-form">
+                <input type="hidden" id="edit-account-id">
+                
+                <div class="form-group">
+                    <label>Account Name</label>
+                    <input type="text" id="acc-name" placeholder="e.g., Main Bank Account" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Account Type</label>
+                    <div class="account-type-grid">
+                        <label class="account-type-option">
+                            <input type="radio" name="acc-type" value="bank" checked>
+                            <div class="type-card">
+                                <span class="type-icon">🏦</span>
+                                <span>Bank</span>
+                            </div>
+                        </label>
+                        <label class="account-type-option">
+                            <input type="radio" name="acc-type" value="cash">
+                            <div class="type-card">
+                                <span class="type-icon">💵</span>
+                                <span>Cash</span>
+                            </div>
+                        </label>
+                        <label class="account-type-option">
+                            <input type="radio" name="acc-type" value="savings">
+                            <div class="type-card">
+                                <span class="type-icon">🏧</span>
+                                <span>Savings</span>
+                            </div>
+                        </label>
+                        <label class="account-type-option">
+                            <input type="radio" name="acc-type" value="credit">
+                            <div class="type-card">
+                                <span class="type-icon">💳</span>
+                                <span>Credit</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Initial Balance</label>
+                    <div class="amount-input-wrapper small">
+                        <span class="currency">Rs.</span>
+                        <input type="number" id="acc-balance" placeholder="0.00" step="0.01" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-submit alt">
+                    <i data-lucide="check"></i>
+                    <span id="account-submit-text">Add Account</span>
+                </button>
             </form>
         </div>
     </div>
 
     <!-- Budget Modal -->
     <div id="budget-modal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Set Budget</h3>
-                <button class="icon-btn" data-close-modal="budget-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-container budget-modal">
+            <div class="modal-header gradient-header-budget">
+                <h2 id="budget-modal-title">Set Budget</h2>
+                <button class="modal-close" data-modal="budget-modal">
                     <i data-lucide="x"></i>
                 </button>
             </div>
-            <form id="budget-form">
-                <select id="budget-category" required>
-                    <option value="food">🍔 Food</option>
-                    <option value="transport">🚗 Transport</option>
-                    <option value="shopping">🛍️ Shopping</option>
-                    <option value="entertainment">🎬 Entertainment</option>
-                    <option value="bills">📄 Bills</option>
-                    <option value="health">💊 Health</option>
-                    <option value="education">📚 Education</option>
-                    <option value="other">📦 Other</option>
-                </select>
-                <input type="number" id="budget-limit" placeholder="Monthly Limit" step="0.01" required>
-                <button type="submit" class="btn-primary btn-full">Save Budget</button>
+            
+            <form id="budget-form" class="modal-form">
+                <input type="hidden" id="edit-budget-id">
+                
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="budget-category" required>
+                        <option value="food">🍔 Food & Dining</option>
+                        <option value="transport">🚗 Transport</option>
+                        <option value="shopping">🛍️ Shopping</option>
+                        <option value="entertainment">🎬 Entertainment</option>
+                        <option value="bills">📄 Bills & Utilities</option>
+                        <option value="health">💊 Health</option>
+                        <option value="education">📚 Education</option>
+                        <option value="other">📦 Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Monthly Limit</label>
+                    <div class="amount-input-wrapper small">
+                        <span class="currency">Rs.</span>
+                        <input type="number" id="budget-limit" placeholder="0.00" step="0.01" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-submit budget">
+                    <i data-lucide="check"></i>
+                    <span id="budget-submit-text">Set Budget</span>
+                </button>
             </form>
         </div>
     </div>
 
     <!-- Day Detail Modal -->
     <div id="day-modal" class="modal hidden">
-        <div class="modal-content">
+        <div class="modal-backdrop"></div>
+        <div class="modal-container day-modal">
             <div class="modal-header">
-                <h3 id="day-date">January 15, 2026</h3>
-                <button class="icon-btn" data-close-modal="day-modal">
+                <div>
+                    <h2 id="day-modal-date">January 15, 2026</h2>
+                    <p id="day-modal-summary" class="day-summary"></p>
+                </div>
+                <button class="modal-close" data-modal="day-modal">
                     <i data-lucide="x"></i>
                 </button>
             </div>
-            <div id="day-transactions" class="transaction-list"></div>
+            
+            <div class="modal-body">
+                <div id="day-transactions" class="transactions-list"></div>
+            </div>
+            
+            <div class="modal-footer">
+                <button id="add-txn-to-day" class="btn-submit">
+                    <i data-lucide="plus"></i>
+                    <span>Add Transaction</span>
+                </button>
+            </div>
         </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirm-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-container confirm-modal">
+            <div class="confirm-icon">
+                <i data-lucide="alert-triangle"></i>
+            </div>
+            <h3 id="confirm-title">Delete Item?</h3>
+            <p id="confirm-message">This action cannot be undone.</p>
+            <div class="confirm-actions">
+                <button class="btn-cancel" id="confirm-cancel">Cancel</button>
+                <button class="btn-danger" id="confirm-ok">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">
+        <i data-lucide="check-circle" id="toast-icon"></i>
+        <span id="toast-message">Success!</span>
     </div>
 
     <!-- Firebase SDK -->
@@ -306,6 +551,6 @@
     
     <!-- App Scripts -->
     <script src="js/firebase-config.js"></script>
-    <script src="js/app.js?v=20260131d"></script>
+    <script src="js/app.js?v=20260131f"></script>
 </body>
 </html>
