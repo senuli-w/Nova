@@ -117,13 +117,14 @@ function showMainApp() {
 // ==========================================
 function setupEventListeners() {
     // Auth form toggle
-    authToggleBtn.addEventListener('click', toggleAuthMode);
+    if (authToggleBtn) authToggleBtn.addEventListener('click', toggleAuthMode);
     
     // Auth form submit
-    authForm.addEventListener('submit', handleAuthSubmit);
+    if (authForm) authForm.addEventListener('submit', handleAuthSubmit);
     
     // Logout button
-    $('#logout-btn').addEventListener('click', handleLogout);
+    const logoutBtn = $('#logout-btn');
+    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
     
     // Navigation
     $$('.nav-item').forEach(item => {
@@ -131,9 +132,13 @@ function setupEventListeners() {
     });
     
     // Modal buttons
-    $('#add-transaction-btn').addEventListener('click', () => openModal('transaction-modal'));
-    $('#add-account-btn').addEventListener('click', () => openModal('account-modal'));
-    $('#add-budget-btn').addEventListener('click', () => openModal('budget-modal'));
+    const addTransactionBtn = $('#add-transaction-btn');
+    const addAccountBtn = $('#add-account-btn');
+    const addBudgetBtn = $('#add-budget-btn');
+    
+    if (addTransactionBtn) addTransactionBtn.addEventListener('click', () => openModal('transaction-modal'));
+    if (addAccountBtn) addAccountBtn.addEventListener('click', () => openModal('account-modal'));
+    if (addBudgetBtn) addBudgetBtn.addEventListener('click', () => openModal('budget-modal'));
     
     // Modal close buttons
     $$('.modal-close').forEach(btn => {
@@ -147,7 +152,7 @@ function setupEventListeners() {
     $$('.modal-backdrop').forEach(backdrop => {
         backdrop.addEventListener('click', (e) => {
             const modal = e.target.closest('.modal');
-            modal.classList.add('hidden');
+            if (modal) modal.classList.add('hidden');
         });
     });
     
@@ -157,32 +162,55 @@ function setupEventListeners() {
     });
     
     // Forms
-    $('#transaction-form').addEventListener('submit', handleTransactionSubmit);
-    $('#account-form').addEventListener('submit', handleAccountSubmit);
-    $('#budget-form').addEventListener('submit', handleBudgetSubmit);
+    const transactionForm = $('#transaction-form');
+    const accountForm = $('#account-form');
+    const budgetForm = $('#budget-form');
+    
+    if (transactionForm) transactionForm.addEventListener('submit', handleTransactionSubmit);
+    if (accountForm) accountForm.addEventListener('submit', handleAccountSubmit);
+    if (budgetForm) budgetForm.addEventListener('submit', handleBudgetSubmit);
     
     // Calendar navigation
-    $('#prev-month-btn').addEventListener('click', () => {
-        currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
-        renderCalendar();
-    });
+    const prevMonthBtn = $('#prev-month-btn');
+    const nextMonthBtn = $('#next-month-btn');
     
-    $('#next-month-btn').addEventListener('click', () => {
-        currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
-        renderCalendar();
-    });
+    if (prevMonthBtn) {
+        prevMonthBtn.addEventListener('click', () => {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+            renderCalendar();
+        });
+    }
+    
+    if (nextMonthBtn) {
+        nextMonthBtn.addEventListener('click', () => {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+            renderCalendar();
+        });
+    }
     
     // Day overlay
-    $('#close-day-overlay').addEventListener('click', closeDayOverlay);
-    $('#day-overlay-backdrop').addEventListener('click', closeDayOverlay);
-    $('.day-overlay-backdrop').addEventListener('click', closeDayOverlay);
+    const closeDayOverlayBtn = $('#close-day-overlay');
+    const dayOverlayBackdrop = $('#day-overlay-backdrop');
+    const dayOverlayBackdropClass = $('.day-overlay-backdrop');
+    const addTransactionToDayBtn = $('#add-transaction-to-day-btn');
+    
+    if (closeDayOverlayBtn) closeDayOverlayBtn.addEventListener('click', closeDayOverlay);
+    if (dayOverlayBackdrop) dayOverlayBackdrop.addEventListener('click', closeDayOverlay);
+    if (dayOverlayBackdropClass) dayOverlayBackdropClass.addEventListener('click', closeDayOverlay);
     
     // Add transaction to selected day
-    $('#add-transaction-to-day-btn').addEventListener('click', () => {
-        closeDayOverlay();
-        openModal('transaction-modal');
-        if (selectedDate) {
-            $('#txn-date').valueAsDate = selectedDate;
+    if (addTransactionToDayBtn) {
+        addTransactionToDayBtn.addEventListener('click', () => {
+            closeDayOverlay();
+            openModal('transaction-modal');
+            if (selectedDate) {
+                const txnDate = $('#txn-date');
+                if (txnDate) txnDate.valueAsDate = selectedDate;
+            }
+        });
+    }
+}
+
         }
     });
 }
